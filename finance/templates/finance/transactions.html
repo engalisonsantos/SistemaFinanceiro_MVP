@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+<meta charset="utf-8">
+<title>Lançamentos</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+:root{
+  --bg:#f4f6f9;
+  --card:#ffffff;
+  --border:#dcdcdc;
+  --primary:#2563eb;
+  --success:#16a34a;
+  --danger:#dc2626;
+}
+
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  font-family: Arial, Helvetica, sans-serif;
+  background:var(--bg);
+  color:#000;
+}
+
+.wrap{
+  max-width:1200px;
+  margin:auto;
+  padding:20px;
+}
+
+.topbar{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  background:var(--card);
+  padding:15px;
+  border:1px solid var(--border);
+  border-radius:8px;
+}
+
+.nav{
+  margin-top:15px;
+}
+
+.nav a{
+  margin-right:10px;
+  text-decoration:none;
+  color:var(--primary);
+  font-weight:bold;
+}
+
+.card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:15px;
+  margin-top:15px;
+}
+
+.formgrid{
+  display:grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap:10px;
+}
+
+@media(max-width:900px){
+  .formgrid{grid-template-columns:1fr}
+}
+
+input, select, textarea{
+  width:100%;
+  padding:8px;
+  border-radius:5px;
+  border:1px solid var(--border);
+}
+
+button{
+  padding:8px 14px;
+  border-radius:5px;
+  border:none;
+  cursor:pointer;
+  font-weight:bold;
+}
+
+.btn-primary{background:var(--primary);color:#fff;}
+.btn-success{background:var(--success);color:#fff;}
+.btn-danger{background:var(--danger);color:#fff;}
+
+.radio-box{
+  display:flex;
+  gap:15px;
+  margin-bottom:10px;
+  padding:10px;
+  border:1px solid var(--border);
+  border-radius:6px;
+  background:#f9fafb;
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  margin-top:10px;
+}
+
+th, td{
+  border:1px solid var(--border);
+  padding:8px;
+  font-size:14px;
+}
+
+th{
+  background:#f1f1f1;
+  text-align:left;
+}
+
+.money{text-align:right;}
+</style>
+</head>
+
+<body>
+<div class="wrap">
+
+  <div class="topbar">
+    <div>
+      <h2>Lançamentos</h2>
+      <small>Controle financeiro</small>
+    </div>
+
+    <div>
+      <strong>Usuário: {{ request.user.username }}</strong>
+
+      <!-- LOGOUT CORRIGIDO (POST) -->
+      <form method="post" action="/logout/" style="display:inline;">
+        {% csrf_token %}
+        <button type="submit" class="btn-danger">Sair</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="nav">
+    <a href="/lancamentos/">Lançamentos</a>
+    {% if request.user.role == "MASTER" %}
+      <a href="/relatorios/periodo/">Relatórios</a>
+      <a href="/admin/">Cadastros/Admin</a>
+    {% endif %}
+  </div>
+
+  <!-- NOVO LANÇAMENTO -->
+  <div class="card">
+    <h3>Novo lançamento</h3>
+
+    {% if error %}
+      <div style="color:red; margin-bottom:10px;">{{ error }}</div>
+    {% endif %}
+
+    <form method="post">
+      {% csrf_token %}
+
+      <!-- SELETOR CRÉDITO / DÉBITO -->
+      <div class="radio-box">
+        <label>
+          <input type="radio" name="natureza" value="RECEITA" checked>
+          Crédito (Receita)
+        </label>
+
+        <label>
+          <input type="radio" name="natureza" value="DESPESA">
+          Débito (Despesa)
+        </label>
+      </div>
+
+      <div class="formgrid">
+
+        <div>
+          <label>Data</label>
+          <input type="date" name="date" required>
+        </div>
+
+        <div>
+          <label>Valor (R$)</label>
+          <input type="number" name="value" step="0.01" min="0.01" required>
+        </div>
+
+        <div>
+          <label>Grupo</label>
+          <select name="group" id="group" required>
+            <option value="">-- selecione --</option>
+            {% for g in groups %}
+              <option value="{{ g.id }}" data-nature="{{ g.nature }}">
+                {{ g.name }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div>
+          <label>Subgrupo</label>
+          <select name="subgroup" id="subgroup" required>
+            <option value="">-- selecione o grupo --</option>
+          </select>
+        </div>
+
+        <div>
+          <label>Nome</label>
+          <input type="text" name="name" maxlength="140" required>
+        </div>
+
+      </div>
+
+      <div style="margin-top:10px;">
+        <label>Descrição</label>
+        <textarea name="description" rows="2"></textarea>
+      </div>
+
+      <div style="margin-top:10px;">
+        <button type="submit" class="btn-success">Salvar</button>
+      </div>
+
+    </form>
+  </div>
+
+  <!-- TABELA -->
+  <div class="card">
+    <h3>Lançamentos encontrados</h3>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Data</th>
+          <th>Natureza</th>
+          <th>Grupo</th>
+          <th>Subgrupo</th>
+          <th>Nome</th>
+          <th>Descrição</th>
+          <th class="money">Valor</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for tx in transactions %}
+        <tr>
+          <td>{{ tx.date|date:"d/m/Y" }}</td>
+          <td>{{ tx.group.get_nature_display }}</td>
+          <td>{{ tx.group.name }}</td>
+          <td>{{ tx.subgroup.name }}</td>
+          <td>{{ tx.name }}</td>
+          <td>{{ tx.description }}</td>
+          <td class="money">R$ {{ tx.value|floatformat:2 }}</td>
+          <td>
+            <form method="post" action="/lancamentos/excluir/{{ tx.id }}/">
+              {% csrf_token %}
+              <button class="btn-danger" type="submit" onclick="return confirm('Excluir este lançamento?')">Excluir</button>
+            </form>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="8">Sem lançamentos no período.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  // Elementos
+  const radios = document.querySelectorAll("input[name='natureza']");
+  const groupSelect = document.getElementById("group");
+  const subgroupSelect = document.getElementById("subgroup");
+
+  // --- Carrega subgrupos por grupo (AJAX) ---
+  async function loadSubgroups(groupId) {
+    subgroupSelect.innerHTML = '<option value="">-- carregando --</option>';
+
+    if (!groupId) {
+      subgroupSelect.innerHTML = '<option value="">-- selecione o grupo --</option>';
+      return;
+    }
+
+    try {
+      const resp = await fetch(`/api/subgrupos/${groupId}/`);
+      const data = await resp.json();
+
+      subgroupSelect.innerHTML = '<option value="">-- selecione o subgrupo --</option>';
+
+      if (!data.items || data.items.length === 0) {
+        subgroupSelect.innerHTML = '<option value="">(sem subgrupos)</option>';
+        return;
+      }
+
+      for (const item of data.items) {
+        const opt = document.createElement("option");
+        opt.value = item.id;
+        opt.textContent = item.name;
+        subgroupSelect.appendChild(opt);
+      }
+    } catch (e) {
+      subgroupSelect.innerHTML = '<option value="">Erro ao carregar subgrupos</option>';
+      console.error("Erro ao carregar subgrupos:", e);
+    }
+  }
+
+  // Quando trocar o grupo, carregar subgrupos
+  groupSelect.addEventListener("change", function () {
+    loadSubgroups(this.value);
+  });
+
+  // --- Filtra grupos por natureza (Crédito/Débito) ---
+  function filtrarGrupos() {
+    const natureza = document.querySelector("input[name='natureza']:checked").value;
+
+    // mostra/oculta opções do grupo
+    for (const option of groupSelect.options) {
+      // mantém o placeholder sempre visível
+      if (!option.value) {
+        option.hidden = false;
+        continue;
+      }
+
+      const nat = option.dataset.nature;
+      option.hidden = (nat !== natureza);
+    }
+
+    // reseta seleção de grupo e subgrupo sempre que muda natureza
+    groupSelect.value = "";
+    subgroupSelect.innerHTML = '<option value="">-- selecione o grupo --</option>';
+  }
+
+  radios.forEach(r => r.addEventListener("change", filtrarGrupos));
+
+  // aplica ao carregar
+  filtrarGrupos();
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <title>Relatório por período</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+  <div style="display:flex;justify-content:space-between;align-items:center;">
+    <h2>Relatório por período</h2>
+    <div>
+      <a href="/lancamentos/">Lançamentos</a> |
+      <a href="/logout/">Sair</a>
+    </div>
+  </div>
+
+  <form method="get" style="display:flex;gap:8px;flex-wrap:wrap;align-items:end;">
+    <div>
+      <label>De</label><br>
+      <input type="date" name="d1" value="{{ d1 }}">
+    </div>
+    <div>
+      <label>Até</label><br>
+      <input type="date" name="d2" value="{{ d2 }}">
+    </div>
+    <div>
+      <button type="submit">Gerar</button>
+    </div>
+    <div>
+      <a href="?d1={{ d1 }}&d2={{ d2 }}&fmt=xlsx">Exportar Excel</a> |
+      <a href="?d1={{ d1 }}&d2={{ d2 }}&fmt=pdf">Exportar PDF</a>
+    </div>
+  </form>
+
+  <hr>
+
+  <h3>Resumo</h3>
+  <ul>
+    <li><b>Recebimentos:</b> R$ {{ receipt_total|floatformat:2 }}</li>
+    <li><b>Pagamentos:</b> R$ {{ payment_total|floatformat:2 }}</li>
+    <li><b>Saldo do período:</b> R$ {{ balance|floatformat:2 }}</li>
+  </ul>
+
+  <h3>Detalhado</h3>
+  <div style="overflow:auto;">
+    <table border="1" cellpadding="6" cellspacing="0" style="border-collapse:collapse;width:100%;">
+      <thead>
+        <tr>
+          <th>Data</th>
+          <th>Tipo</th>
+          <th>Grupo</th>
+          <th>Subgrupo</th>
+          <th>Nome</th>
+          <th>Descrição</th>
+          <th>Valor (R$)</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for tx in transactions %}
+          <tr>
+            <td>{{ tx.date|date:"d/m/Y" }}</td>
+            <td>{{ tx.get_type_display }}</td>
+            <td>{{ tx.group.name }}</td>
+            <td>{{ tx.subgroup.name }}</td>
+            <td>{{ tx.name }}</td>
+            <td>{{ tx.description }}</td>
+            <td style="text-align:right;">{{ tx.value }}</td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="7">Sem lançamentos no período.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <hr>
+
+  <h3>DRE simples</h3>
+  <ul>
+    <li><b>Receitas:</b> R$ {{ receipt_total|floatformat:2 }}</li>
+    <li><b>Despesas:</b> R$ {{ payment_total|floatformat:2 }}</li>
+    <li><b>Resultado:</b> R$ {{ balance|floatformat:2 }}</li>
+  </ul>
+
+</body>
+</html>

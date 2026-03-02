@@ -2,6 +2,9 @@ import os
 from pathlib import Path
 import dj_database_url
 
+# =========================================================
+# BASE
+# =========================================================
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 def env_bool(name: str, default: bool = False) -> bool:
@@ -10,18 +13,33 @@ def env_bool(name: str, default: bool = False) -> bool:
         return default
     return val.strip().lower() in ("1", "true", "yes", "on")
 
+# =========================================================
+# SECURITY
+# =========================================================
 SECRET_KEY = os.environ.get("SECRET_KEY") or os.environ.get("DJANGO_SECRET_KEY") or "unsafe-secret-key"
 DEBUG = env_bool("DEBUG", False) or env_bool("DJANGO_DEBUG", False)
 
 RAILWAY_DOMAIN = os.environ.get("RAILWAY_PUBLIC_DOMAIN", "sistemafinanceiromvp-production.up.railway.app")
-ALLOWED_HOSTS = ["localhost", "127.0.0.1", RAILWAY_DOMAIN]
-CSRF_TRUSTED_ORIGINS = [f"https://{RAILWAY_DOMAIN}"]
+
+ALLOWED_HOSTS = [
+    "localhost",
+    "127.0.0.1",
+    RAILWAY_DOMAIN,
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    f"https://{RAILWAY_DOMAIN}",
+]
 
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 USE_X_FORWARDED_HOST = True
+
 CSRF_COOKIE_SECURE = True
 SESSION_COOKIE_SECURE = True
 
+# =========================================================
+# APPS
+# =========================================================
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -29,11 +47,18 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+
+    # SUA APP (assumindo que a pasta chama "finance")
+    "finance",
 ]
 
+# =========================================================
+# MIDDLEWARE
+# =========================================================
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
+
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -42,8 +67,15 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
+# =========================================================
+# URLS / WSGI
+# =========================================================
 ROOT_URLCONF = "core.urls"
+WSGI_APPLICATION = "core.wsgi.application"
 
+# =========================================================
+# TEMPLATES
+# =========================================================
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
@@ -60,11 +92,9 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = "core.wsgi.application"
-
-# ===============================
+# =========================================================
 # DATABASE
-# ===============================
+# =========================================================
 DATABASE_URL = (os.environ.get("DATABASE_URL") or "").strip().strip('"').strip("'")
 DATABASE_URL = DATABASE_URL.replace("railwaypostgresql://", "postgresql://")
 DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://")
@@ -78,6 +108,7 @@ if DATABASE_URL:
         )
     }
 else:
+    # fallback local (não crasha se DATABASE_URL não existir)
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
@@ -85,6 +116,9 @@ else:
         }
     }
 
+# =========================================================
+# AUTH / PASSWORDS
+# =========================================================
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
@@ -92,13 +126,26 @@ AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
+LOGIN_URL = "/accounts/login/"
+LOGIN_REDIRECT_URL = "/"
+LOGOUT_REDIRECT_URL = "/accounts/login/"
+
+# =========================================================
+# I18N / TZ
+# =========================================================
 LANGUAGE_CODE = "pt-br"
 TIME_ZONE = "America/Sao_Paulo"
 USE_I18N = True
 USE_TZ = True
 
+# =========================================================
+# STATIC FILES
+# =========================================================
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
+# =========================================================
+# DEFAULTS
+# =========================================================
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"

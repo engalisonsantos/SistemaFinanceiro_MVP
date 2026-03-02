@@ -1,2 +1,2 @@
 [deploy]
-startCommand = "gunicorn core.wsgi:application --bind 0.0.0.0:$PORT"
+startCommand = "sh -c 'gunicorn core.wsgi:application --bind 0.0.0.0:${PORT:-8080}'"

@@ -1,10 +1,19 @@
 from django.contrib import admin
 from django.urls import path, include
-from django.contrib.auth import views as auth_views
+from django.http import HttpResponse
+
+
+# View simples para teste (pode remover depois)
+def home(request):
+    return HttpResponse("Sistema Financeiro rodando com sucesso 🚀")
+
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("", include("finance.urls")),
-    path("login/", auth_views.LoginView.as_view(template_name="finance/login.html"), name="login"),
-    path("logout/", auth_views.LogoutView.as_view(), name="logout"),
+
+    # Página inicial
+    path("", home, name="home"),
+
+    # Se você tiver apps, adicione aqui:
+    # path("financeiro/", include("financeiro.urls")),
 ]

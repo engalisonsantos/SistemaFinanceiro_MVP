@@ -1,1 +1,1 @@
-gunicorn core.wsgi:application --bind 0.0.0.0:$PORT
+web: sh -c "gunicorn core.wsgi:application --bind 0.0.0.0:${PORT:-8080}"

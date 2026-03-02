@@ -4,13 +4,9 @@ import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# ===============================
-# SEGURANÇA
-# ===============================
+SECRET_KEY = os.environ.get("SECRET_KEY", "unsafe-secret-key")
 
-SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-temp-key")
-
-DEBUG = False  # PRODUÇÃO = False
+DEBUG = False
 
 ALLOWED_HOSTS = [
     "sistemafinanceiromvp-production.up.railway.app",
@@ -28,10 +24,6 @@ USE_X_FORWARDED_HOST = True
 CSRF_COOKIE_SECURE = True
 SESSION_COOKIE_SECURE = True
 
-# ===============================
-# APPS
-# ===============================
-
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -39,14 +31,11 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-
-    # suas apps aqui
 ]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
-
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -55,7 +44,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-ROOT_URLCONF = "sistemafinanceiro.urls"
+ROOT_URLCONF = "core.urls"
 
 TEMPLATES = [
     {
@@ -73,23 +62,15 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = "sistemafinanceiro.wsgi.application"
-
-# ===============================
-# DATABASE (Railway PostgreSQL)
-# ===============================
+WSGI_APPLICATION = "core.wsgi.application"
 
 DATABASES = {
     "default": dj_database_url.config(
         default=os.environ.get("DATABASE_URL"),
         conn_max_age=600,
-        ssl_require=True
+        ssl_require=True,
     )
 }
-
-# ===============================
-# SENHA
-# ===============================
 
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
@@ -98,20 +79,10 @@ AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
-# ===============================
-# INTERNACIONALIZAÇÃO
-# ===============================
-
 LANGUAGE_CODE = "pt-br"
-
 TIME_ZONE = "America/Sao_Paulo"
-
 USE_I18N = True
 USE_TZ = True
-
-# ===============================
-# ARQUIVOS ESTÁTICOS
-# ===============================
 
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"

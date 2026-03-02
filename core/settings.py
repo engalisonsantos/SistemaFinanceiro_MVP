@@ -101,6 +101,8 @@ LOGIN_URL = "/login/"
 LOGIN_REDIRECT_URL = "/lancamentos/"
 LOGOUT_REDIRECT_URL = "/login/"
 
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = True
 # Padrão do Django
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
